@@ -26,11 +26,12 @@
   * Starting a Process: `process = spasm.Process()`
   * Starting a Pool: `pool = spasm.Pool()`
   * Start
-  *  Attributes:
-    * name - Name of the process (Process only)
+  * Attributes:
+    * name - Name of the process
     * timeout - default timeout
     * init - custom initialize function
     * async - set to true for default asynchronous processing
+    * ordered - if you want results to come back in the order you submitted or not
     * cpus - Number of processes to make in pool (Pool only)
   * Methods:
     * run() - Runs the given function
@@ -40,6 +41,9 @@
   * Getting Returns
     * `results = process.run(function, (args,))`
     * `results = pool.run(function, (args,))`
+* Server
+    * `server = spasm.server()`
+    * `client = spasm.client()`
 * Logging
 * Plugins
 
