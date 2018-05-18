@@ -1,0 +1,70 @@
+# Initial import
+import spasm
+
+# Pool
+pool = spasm.Pool()
+    .name    => Name of the Process *Required
+    .cpus    => Number of CPUs to use *Default to os.cpu_count()
+    .async   => If to run tasks asynchronously *Default True
+    .timeout => Default timeout on tasks *Default None
+    .init    => Initilizer functions *Default None
+                Input: Func
+                       [Func, Args, {Kwarg: "kwarg"}]
+                       [Func, Func, ...]
+                       [[Func, Args], [Func: {Kwarg: "kwarg"}], ...]
+    .state   => Current state of the Pool
+    .start   => Starts the Pool
+    .stop    => Stops the Pool gracefully
+    .kill    => Forcibly stops the Pools
+    .run     => Runs functions *Always returns
+        .timeout      => Timeout for this task
+        .run_multiple => Runs the function multiple times with different parameters
+        .async        => If to run this task asynchronously
+
+# Process
+process = spasm.Process()
+    .name    => Name of the Process *Required
+    .timeout => Default timeout on tasks *Default None
+    .init    => Initilizer functions *Default None
+                Input: Func
+                       [Func, Args, {Kwarg: "kwarg"}]
+                       [Func, Func, ...]
+                       [[Func, Args], [Func: {Kwarg: "kwarg"}], ...]
+    .state   => Current state of the Pool
+    .start   => Starts the Pool
+    .stop    => Stops the Pool gracefully
+    .kill    => Forcibly stops the Pools
+    .run     => Runs functions *Always returns
+        .timeout      => Timeout for this task *Default None
+        .run_multiple => Runs the function multiple times with different parameters *Default False
+
+# Other Functions
+spasm.run() => Runs a function in the given Pool or Process
+    name         => Name of Pool/Process to run function *Required
+    func         => Function to run *Required
+        Input: Func
+        [Func, Args, {Kwarg: "kwarg"}]
+        [Func, Func, ...]
+        [[Func, Args], [Func: {Kwarg: "kwarg"}], ...]
+    timeout      => Timeout for this task *Default None
+    run_multiple => Runs the function multiple times with different parameters *Default False
+
+spasm._func_packer() => Properly packs a function for running
+
+# Logging
+spasm.logging => Handles all logging in a manager Process
+    .enabled  => If logging is enabled *Default True
+    .handlers => Logging handlers *Default Stream and RotatingFile
+    .Format   => Per handler formatting
+
+# Plugins
+spasm.plugin_dir => Sets the location of the plugin directory
+
+spasm.ui.tui => Text-based user interface in a new Process or manager Process
+        .web => Web-based user interface in a new Process or manager Process
+        .gui => Graphical user interface in a new Process or manager Process
+
+spasm.gpu => Creates a queue system with dedicated Process for GPU processing
+
+spasm.api => Contains functions for pulling API data asynchronously
+             in a new Process or manager Process

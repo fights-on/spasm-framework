@@ -1,151 +1,122 @@
-"""
-
-"""
 import os
-import multiprocessing
-import signal
 import collections
-import time
+import multiprocessing as mp
+import signal
 
 
-_SETTINGS = {
-    "plugin_dir": "./plugins"
-}
-
-
-class Process(object):
-    """
-
-    """
-    def __init__(self, name, timeout=None, init=None):
-        """
-
-        :param name: Easy to reference name of the process
-        :param timeout: Default timeout of all action ran by this process
-        :param init: Custom initialization functions
-        """
-        self.name = name
-        self.timeout = timeout
-        self.init = init
-        self.state = "Stopped"
-        self._process = None
-        self._queue = None
-
-    def __str__(self):
-        """
-
-        :return:
-        """
-        output = "Process:\n\tName: {}".format(self.name)
-        if self.timeout:
-            output += "\n\tTimeout: {}".format(self.timeout)
-        if self.init:
-            if isinstance(self.init, collections.Iterable):
-                output += "\n\tInitial Functions: "
-                for init in self.init:
-                    output += "\n\t\t{}".format(init.__name__)
-            else:
-                output += "\n\tInitial Function: {}".format(self.init.__name__)
-        output += "\n\tState: {}".format(self.state)
-        return output
-
-    def start(self):
-        self._queue = multiprocessing.JoinableQueue()
-        self._process = multiprocessing.Process(target=_process_worker, args=(self._queue,), name=self.name)
-        self._process.daemon = True
-        self._process.start()
-        self.state = "Running"
-
-    def stop(self):
-        self._queue.put("!@#$1234SENTINEL4321$#@!")
-        self.state = "Stopped"
-        self._process.join()
-        self._queue.join()
-
-    def kill(self):
-        pass
-
-    def run(self):
-        pass
+_RUNNING_PROCESSES = list()
 
 
 class Pool(object):
     """
-
     """
-    def __init__(self, name, timeout=None, async=True, ordered=True, init=None, cpus=None):
-        pass
-
+    def __init__(self, name, cpus=os.cpu_count(), async=True, timeout=None, init=None):
+        self.name = name
+        self.cpus = cpus
+        self.async = async
+        self.timeout = timeout
+        self.init = _func_packer(init)
+        self.state = "Stopped"
+        self._pool = None
+    
+    def __str__(self):
+        output = "SPASM Pool"
+        output += "\n  Name: {}".format(self.name)
+        output += "\n  CPUs: {}".format(self.cpus)
+        output += "\n  Async: {}".format(self.async)
+        if self.timeout:
+            output += "\n  Timeout:  {}".format(self.timout)
+        if self.init:
+            output += "\n Initializers:"
+            for item in self.init.keys():
+                output += "\n    {}".format(item)
+        output += "\n  State: {}".format(self.state)
+        return output
+    
+    def __repr__(self):
+        return "SPASM Pool: {}".format(self.name)
+    
     def start(self):
-        pass
-
+        if self in _RUNNING_PROCESSES:
+            print("{} is already running.".format(self.name))
+        else:
+            self._pool = mp.Pool(processes=self.cpus, initializer=_initilializer, initargs=(self.init,))
+            _RUNNING_PROCESSES.append(self)
+            self.state = "Running"
+    
     def stop(self):
-        pass
-
+        if self in _RUNNING_PROCESSES:
+            self._pool.close()
+            self._pool.join()
+            _RUNNING_PROCESSES.remove(self)
+            self.state = "Stopped"
+        else:
+            print("{} is not running.".format(self.name))
+    
     def kill(self):
-        pass
+        if self in _RUNNING_PROCESSES:
+            self._pool.terminate()
+            self._pool.join()
+            _RUNNING_PROCESSES.remove(self)
+            self.state = "Stopped"
+        else:
+            print("{} is not running.".format(self.name))
+    
+    def run(self, func, args=None, kwds=None, timeout=None, run_multiple=False):
+        if self.state == "Stopped":
+            print("{} is not running.".format(self.name))
+        else:
+            print(func)
 
-    def run(self):
-        pass
 
-    def _init(self):
-        pass
-
-
-class Server(object):
+class Process(object):
     """
-
     """
-    def __init__(self):
-        pass
-
-
-class Client(object):
-    """
-
-    """
-    def __init__(self):
+    def __init__(self, name, timeout=None, init=None):
         pass
 
 
-def set_plugin_dir(path):
+def run(name, func, args=None, kwargs=None, timout=None, async=True, run_multiple=False):
+    pass
+    
+
+def _func_packer(func):
     """
-    Sets the plugin path for SPASM
-    :return: None
+    
     """
-    path = os.path.abspath(path)
-    if not os.path.isdir(path):
-        os.makedirs(path, exist_ok=True)
-    _SETTINGS["plugin_dir"] = path
+    if func:
+        if isinstance(func, collections.Iterable) and not isinstance(func, str):
+            output = dict()
+            current_func = None
+            for item in func:
+                if isinstance(item, collections.Iterable) and not isinstance(item, str) \
+                and not isinstance(item, dict) and callable(item[0]):
+                   output[item[0].__name__] = item
+                else:
+                    if callable(item):
+                        current_func = item.__name__
+                        output[current_func] = [item]
+                    else:
+                        output[current_func].append(item)
+            return output
+        elif callable(func):
+            return {func.__name__: [func]}
+        else:
+            print("{} is not a valid function.".format(func))
+    else:
+        return None
 
 
-def _init():
-    """
-
-    :return:
-    """
+def _initilializer(funcs=None):
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-
-def _process_worker(queue):
-    """
-
-    :return:
-    """
-    _init()
-    while True:
-        try:
-            data = queue.get()
-            if data == "!@#$1234SENTINEL4321$#@!":
-                queue.task_done()
-                break
-            if len(data) == 1:
-                func = data[0]
-                print(func)
-            else:
-                func = data[0]
-                args = data[1:]
-                print(func, args)
-            queue.task_done()
-        except multiprocessing.Queue.empty():
-            pass
+    if funcs:
+        for _, item in funcs.items():
+            func = item[0]
+            args = list()
+            kwargs = dict()
+            for arg in item[1:]:
+                if isinstance(arg, dict):
+                    kwargs.update(arg)
+                else:
+                    args.append(arg)
+            func(*args, **kwargs)
